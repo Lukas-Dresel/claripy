@@ -313,6 +313,20 @@ def raw_combine(solver_type, reuse_z3_solver):
     nose.tools.assert_equal(s30.combine([s10]).eval(x, 1), ( 30, ))
     nose.tools.assert_equal(len(s30.combine([s10]).constraints), 2)
 
+def test_composite_solver_with_strings():
+    s = claripy.SolverComposite(
+        template_solver_string=claripy.SolverCompositeChild(backend=claripy.backend_manager.backends.smtlib_cvc4))
+    x = claripy.BVS("x", 32)
+    y = claripy.BVS("y", 32)
+    z = claripy.BVS("z", 32)
+    str_1 = claripy.StringS("sym_str_1", 1024)
+    c = claripy.And(x == 1, y == 2, z == 3, str_1 == claripy.StringV("cavallo"))
+    s.add(c)
+    nose.tools.assert_equal(len(s._solver_list), 4)
+    nose.tools.assert_true(s.satisfiable())
+    res = s.eval(str_1, 1)
+    nose.tools.assert_equal(list(s.eval(str_1, 1)), ["cavallo"])
+
 
 def test_composite_solver():
     yield raw_composite_solver, True
@@ -541,6 +555,20 @@ def test_zero_division_in_cache_mixin():
     s = claripy.Solver()
     assert s.min(a/b) == 0
 
+def test_solver_portfolio():
+    solver = claripy.SolverPortfolio(
+        solvers=[
+            claripy.SolverStrings(backend=claripy.backend_manager.backends.smtlib_cvc4),
+            claripy.SolverStrings(backend=claripy.backend_manager.backends.smtlib_z3),
+            claripy.SolverStrings(backend=claripy.backend_manager.backends.smtlib_z3str),
+        ]
+    )
+    str_1 = claripy.StringS("input", 1024)
+    solver.add(claripy.StrIndexOf(str_1, claripy.StringV("caca"), 0, 64) >= 0)
+    # res = solver.satisfiable()
+    res2 = solver.eval(str_1, 10)
+
+
 if __name__ == '__main__':
 
     for fparams in test_unsat_core():
@@ -563,4 +591,6 @@ if __name__ == '__main__':
     for fparams in test_combine():
         fparams[0](*fparams[1:])
     test_composite_solver()
+    test_composite_solver_with_strings()
     test_zero_division_in_cache_mixin()
+    # test_solver_portfolio()

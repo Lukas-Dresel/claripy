@@ -276,7 +276,7 @@ class Backend(object):
         :param model_callback:      a function that will be executed with recovered models (if any)
         :return:                   A boolean.
         """
-
+        
         #if self._solver_required and solver is None:
         #   raise BackendError("%s requires a solver for evaluation" % self.__class__.__name__)
         if not isinstance(e, Base):
@@ -553,6 +553,28 @@ class Backend(object):
         """
         raise BackendError("backend doesn't support max()")
 
+    def check_satisfiability(self, extra_constraints=(), solver=None, model_callback=None):
+        """
+        This function does a constraint check and returns the solvers state
+
+        :param solver:              The backend solver object.
+        :param extra_constraints:   Extra constraints (as ASTs) to add to s for this solve
+        :param model_callback:      a function that will be executed with recovered models (if any)
+        :return:                    'SAT', 'UNSAT', or 'UNKNOWN'
+        """
+        return self._check_satisfiability(extra_constraints=self.convert_list(extra_constraints), solver=solver, model_callback=model_callback)
+
+    def _check_satisfiability(self, extra_constraints=(), solver=None, model_callback=None):
+        """
+        This function does a constraint check and returns the solvers state
+
+        :param solver:              The backend solver object.
+        :param extra_constraints:   Extra constraints (as ASTs) to add to s for this solve
+        :param model_callback:      a function that will be executed with recovered models (if any)
+        :return:                    'SAT', 'UNSAT', or 'UNKNOWN'
+        """
+        return 'SAT' if self.satisfiable(extra_constraints, solver, model_callback) else 'UNSAT'
+
     def satisfiable(self, extra_constraints=(), solver=None, model_callback=None):
         """
         This function does a constraint check and checks if the solver is in a sat state.
@@ -707,4 +729,6 @@ from .backend_z3 import BackendZ3
 from .backend_z3_parallel import BackendZ3Parallel
 from .backend_concrete import BackendConcrete
 from .backend_vsa import BackendVSA
+from .backend_smtlib import BackendSMTLibBase
+from .backend_smtlib_solvers import *
 from ..ast.base import Base

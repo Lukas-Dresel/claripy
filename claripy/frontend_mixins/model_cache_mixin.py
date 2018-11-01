@@ -1,7 +1,7 @@
 import weakref
 import itertools
 
-from claripy import errors
+from .. import errors
 
 
 class ModelCache(object):
@@ -285,7 +285,7 @@ class ModelCacheMixin(object):
         return results
 
     def eval(self, e, n, **kwargs):
-        return tuple( r[0] for r in ModelCacheMixin.batch_eval(self, [e], n=n, **kwargs) )
+        return tuple( r[0] for r in ModelCacheMixin.batch_eval(self, [e], n=n, **kwargs) if r )
 
     def min(self, e, extra_constraints=(), **kwargs):
         cached = [ ]

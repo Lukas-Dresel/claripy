@@ -75,7 +75,7 @@ class Base(ana.Storable):
     :ivar args:         The arguments that are being used
     """
 
-    __slots__ = [ 'op', 'args', 'variables', 'symbolic', '_hash', '_simplified', '_cached_encoded_name',
+    __slots__ = [ 'op', 'args', 'variables', 'symbolic', '_hash', '_simplified', 'is_string', '_cached_encoded_name',
                   '_cache_key', '_errored', '_eager_backends', 'length', '_excavated', '_burrowed', '_uninitialized',
                   '_uc_alloc_depth', 'annotations', 'simplifiable', '_uneliminatable_annotations', '_relocatable_annotations']
     _hash_cache = weakref.WeakValueDictionary()
@@ -102,9 +102,6 @@ class Base(ana.Storable):
         :param eager_backends:  A list of backends with which to attempt eager evaluation
         :param annotations:     A frozenset of annotations applied onto this AST.
         """
-
-        #if any(isinstance(a, BackendObject) for a in args):
-        #   raise Exception('asdf')
 
         # fix up args and kwargs
         a_args = tuple((a.to_claripy() if isinstance(a, BackendObject) else a) for a in args)
@@ -190,7 +187,7 @@ class Base(ana.Storable):
         return self.op, tuple(str(a) if isinstance(a, numbers.Number) else hash(a) for a in self.args), self.symbolic, hash(self.variables), str(self.length)
 
     #pylint:disable=attribute-defined-outside-init
-    def __a_init__(self, op, args, variables=None, symbolic=None, length=None, simplified=0, errored=None, eager_backends=None, uninitialized=None, uc_alloc_depth=None, annotations=None, encoded_name=None): #pylint:disable=unused-argument
+    def __a_init__(self, op, args, variables=None, symbolic=None, length=None, simplified=0, errored=None, eager_backends=None, uninitialized=None, uc_alloc_depth=None, annotations=None, encoded_name=None, is_string=False): #pylint:disable=unused-argument
         """
         Initializes an AST. Takes the same arguments as ``Base.__new__()``
 
@@ -200,6 +197,7 @@ class Base(ana.Storable):
         self.op = op
         self.args = args
         self.length = length
+        self.is_string = is_string
         self.variables = frozenset(variables)
         self.symbolic = symbolic
         self._eager_backends = eager_backends
@@ -915,6 +913,7 @@ class Base(ana.Storable):
 
     @property
     def concrete(self):
+        # import ipdb; ipdb.set_trace()
         return backends.concrete.handles(self)
 
     @property
